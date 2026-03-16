@@ -117,11 +117,105 @@ header{margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:2
 /* SUN SECTION */
 .sun-insight-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;}
 @media(max-width:700px){.sun-insight-grid{grid-template-columns:1fr 1fr;}}
+
+/* ═══ MOBILE RESPONSIVE ═══ */
+@media(max-width:600px){
+  .container{padding:16px 12px;}
+  header{margin-bottom:24px;padding-bottom:16px;gap:12px;}
+  .header-left h1{font-size:1.3rem;}
+  .header-left p{font-size:.62rem;}
+  .header-stats{gap:8px;}
+  .stat-chip{padding:8px 10px;min-width:72px;}
+  .stat-chip .val{font-size:1rem;}
+  .stat-chip .lbl{font-size:.52rem;}
+  .stat-chip .date-tag{font-size:.5rem;}
+  .author-avatar,.author-fb{width:46px;height:46px;}
+  .author-name{font-size:.56rem;}
+
+  .nav-row{gap:6px;margin-bottom:16px;}
+  .tabs{gap:2px;padding:3px;width:100%;}
+  .tab{padding:6px 10px;font-size:.6rem;letter-spacing:.04em;flex:1;text-align:center;}
+  .res-toggle{width:100%;}
+  .res-lbl{display:none;}
+  .res-btn{flex:1;text-align:center;padding:5px 8px;}
+
+  .update-bar{padding:8px 12px;gap:8px;}
+  .update-status{font-size:.58rem;}
+  .update-btn{font-size:.58rem;padding:4px 10px;}
+
+  .card{padding:14px 12px;margin-bottom:14px;}
+  .card-title{font-size:.75rem;letter-spacing:.06em;}
+  .card-sub{font-size:.6rem;margin-bottom:12px;}
+  .chart-wrap{height:240px;}
+  .chart-wrap.tall{height:280px;}
+  .chart-wrap.xl{height:300px;}
+  .grid-2{grid-template-columns:1fr;gap:14px;}
+
+  .hoy-picker-row{padding:8px 10px;gap:5px;}
+  .hoy-picker-row label{display:none;}
+  .hoy-date-input{font-size:.72rem;padding:5px 8px;}
+  .hoy-today-btn{font-size:.58rem;padding:5px 10px;}
+  .hoy-selected-label{font-size:.82rem;margin-left:0;width:100%;order:10;}
+  .hoy-nav-btn{padding:4px 7px;font-size:.58rem;}
+  .hoy-stat-grid{grid-template-columns:1fr 1fr;gap:8px;}
+  .hoy-stat .hs-val{font-size:1.2rem;}
+  .hoy-range-labels{height:28px;}
+  .hoy-pin{font-size:.5rem;}
+
+  .insight{min-width:calc(50% - 6px);}
+  .insight .i-val{font-size:1.1rem;}
+  .insights{gap:8px;}
+
+  .heatmap-table td{min-width:32px;font-size:.6rem;padding:4px 2px;}
+  .heatmap-table th{font-size:.55rem;padding:3px 2px;}
+
+  .year-selector .yr-lbl{width:100%;margin-bottom:2px;}
+  .yr-btn{font-size:.58rem;padding:3px 7px;}
+
+  .mzoom-box{padding:16px 12px;}
+  .mzoom-day-grid{grid-template-columns:repeat(7,1fr);gap:2px;}
+  .mzoom-day .md-num{font-size:.52rem;}
+  .mzoom-day .md-val{font-size:.65rem;}
+  .mzoom-stats{grid-template-columns:1fr 1fr;gap:6px;}
+  .mzoom-stat .ms-val{font-size:.9rem;}
+  .mzoom-nav-btn{padding:4px 8px;font-size:.6rem;}
+  .mzoom-title{font-size:.85rem;}
+  .mzoom-yr-lbl{font-size:.65rem;}
+
+  .legend{gap:7px;}
+  .legend-item{font-size:.58rem;}
+  .sun-insight-grid{grid-template-columns:1fr 1fr;gap:8px;}
+}
 .author-link{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;opacity:.8;transition:opacity .2s;flex-shrink:0;}
 .author-link:hover{opacity:1;}
-.author-avatar{width:46px;height:46px;border-radius:50%;border:2px solid var(--border);object-fit:cover;background:var(--card);}
-.author-fb{width:46px;height:46px;border-radius:50%;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;color:var(--accent);}
-.author-name{font-size:.58rem;color:var(--muted);letter-spacing:.05em;}
+.author-avatar{width:60px;height:60px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;background:var(--card);box-shadow:0 0 0 3px rgba(0,200,224,.15);}
+.author-fb{width:60px;height:60px;border-radius:50%;border:2px solid var(--accent);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--accent);}
+.author-name{font-size:.65rem;color:var(--muted);letter-spacing:.05em;font-weight:500;}
+/* MONTH ZOOM MODAL */
+.mzoom-overlay{position:fixed;inset:0;background:rgba(5,13,26,.88);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.mzoom-overlay.open{opacity:1;pointer-events:all;}
+.mzoom-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:700px;width:100%;position:relative;max-height:90vh;overflow-y:auto;}
+.mzoom-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:14px 14px 0 0;}
+.mzoom-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;line-height:1;padding:4px 8px;border-radius:6px;transition:color .15s;}
+.mzoom-close:hover{color:var(--text);}
+.mzoom-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#e0f0ff;margin-bottom:4px;}
+.mzoom-sub{font-size:.65rem;color:var(--muted);margin-bottom:18px;}
+.mzoom-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.mzoom-nav-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.65rem;cursor:pointer;transition:all .15s;}
+.mzoom-nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.mzoom-yr-lbl{font-size:.7rem;color:var(--text);font-weight:600;flex:1;text-align:center;}
+.mzoom-day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px;}
+.mzoom-day{border-radius:6px;padding:6px 4px;text-align:center;cursor:default;transition:transform .1s;}
+.mzoom-day:hover{transform:scale(1.06);z-index:2;position:relative;}
+.mzoom-day .md-num{font-size:.62rem;color:rgba(255,255,255,.5);display:block;}
+.mzoom-day .md-val{font-size:.8rem;font-weight:700;display:block;margin-top:1px;}
+.mzoom-day.empty{background:rgba(20,40,70,.3);}
+.mzoom-strip{display:flex;height:10px;border-radius:4px;overflow:hidden;margin-bottom:10px;}
+.mzoom-strip-seg{flex:1;}
+.mzoom-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.mzoom-stat{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:8px 10px;}
+.mzoom-stat .ms-val{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent);}
+.mzoom-stat .ms-lbl{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -145,7 +239,6 @@ header{margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:2
   <div class="tabs">
     <button class="tab" onclick="showPanel('hoy',event)">📅 Día</button>
     <button class="tab active" onclick="showPanel('ciclo',event)">Ciclo Anual</button>
-    <button class="tab" onclick="showPanel('meses',event)">Meses</button>
     <button class="tab" onclick="showPanel('historico',event)">Histórico</button>
     <button class="tab" onclick="showPanel('heatmap',event)">Mapa de Calor</button>
     <button class="tab" onclick="showPanel('sol',event)">☀ Temp &amp; Sol</button>
@@ -203,25 +296,15 @@ header{margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:2
   </div>
 </div>
 
-<!-- MESES -->
-<div id="panel-meses" class="panel">
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">Media mensual por año</div>
-      <div class="card-sub">Últimos 6 años</div>
-      <div class="chart-wrap tall"><canvas id="chartMeses"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Rango histórico</div>
-      <div class="card-sub" id="rangoSub">Mín, media y máx por mes (2007–2025)</div>
-      <div class="chart-wrap tall"><canvas id="chartRango"></canvas></div>
-    </div>
-  </div>
-  <div class="insights" id="mesInsights"></div>
-</div>
 
 <!-- HISTORICO -->
 <div id="panel-historico" class="panel">
+  <div class="card">
+    <div class="card-title">Rango histórico</div>
+    <div class="card-sub" id="rangoSub">Mín, media y máx por mes (2007–2025)</div>
+    <div class="chart-wrap tall"><canvas id="chartRango"></canvas></div>
+  </div>
+
   <div class="card">
     <div class="card-title">Tendencia histórica anual</div>
     <div class="card-sub">Media anual solo para años con datos completos (2007–2025) · 2026 excluido por ser año en curso</div>
@@ -311,15 +394,14 @@ function showPanel(id, e) {
   document.getElementById('panel-'+id).classList.add('active');
   e.target.classList.add('active');
   currentPanel = id;
-  var showRes = id==='ciclo'||id==='meses'||id==='heatmap';
+  var showRes = id==='ciclo'||id==='historico';
   var rt = document.getElementById('resToggle');
   rt.style.opacity      = showRes ? '1' : '0.35';
   rt.style.pointerEvents= showRes ? '' : 'none';
   if (!charts['_built_'+id]) {
     charts['_built_'+id] = true;
     if (id==='hoy')       initHoy();
-    if (id==='meses')     buildMeses();
-    if (id==='historico') buildHistorico();
+    if (id==='historico') { buildHistorico(); buildRango(); }
     if (id==='heatmap')   buildHeatmap();
     if (id==='sol')       buildSol();
   }
@@ -340,8 +422,8 @@ function setRes(r) {
   if (charts['ciclo']){charts['ciclo'].destroy();delete charts['ciclo'];}
   if (charts['rango']){charts['rango'].destroy();delete charts['rango'];}
   if (currentPanel==='ciclo') buildCiclo(false);
-  if (currentPanel==='meses') buildRango();
-  if (currentPanel==='heatmap') renderHeatmap(r);
+  if (currentPanel==='historico') { if(charts['rango']){charts['rango'].destroy();delete charts['rango'];} buildRango(); }
+
 }
 
 // ======= HEADER =======
@@ -685,20 +767,26 @@ function buildRango(){
   var maxs=isD?DAILY_RAW.ds.map(function(s){return s[1];}):DATA.monthly_stats.map(function(m){return m.max;});
   var means=isD?DAILY_RAW.ds.map(function(s){return s[2];}):DATA.monthly_stats.map(function(m){return m.mean;});
   var dss=[];
+  var dlOff={datalabels:{display:false}};
+  var dlBar={datalabels:{display:!isD,anchor:'start',align:'end',offset:5,color:'rgba(255,255,255,.92)',font:{size:8,family:"'JetBrains Mono',monospace",weight:'600'},formatter:function(v){return v!=null?v.toFixed(1):'';},clamp:true}};
+  var dlLine={datalabels:{display:!isD,anchor:'top',align:'top',offset:3,color:'#00c8e0',font:{size:8,family:"'JetBrains Mono',monospace",weight:'600'},formatter:function(v){return v!=null?v.toFixed(1)+'°':'';}}}; 
   if(isD){
-    dss.push({label:'Maximo diario',data:maxs,borderColor:'rgba(192,64,32,.6)',backgroundColor:'rgba(192,64,32,.15)',borderWidth:1,pointRadius:0,tension:.3,fill:'+2',order:5});
-    dss.push({label:'P75',data:DAILY_RAW.ds.map(function(s){return s[4];}),borderColor:'transparent',backgroundColor:'rgba(0,150,180,.25)',borderWidth:0,pointRadius:0,tension:.3,fill:'+1',order:4});
-    dss.push({label:'P25',data:DAILY_RAW.ds.map(function(s){return s[3];}),borderColor:'transparent',backgroundColor:'rgba(0,150,180,.25)',borderWidth:0,pointRadius:0,tension:.3,fill:false,order:6});
-    dss.push({label:'Minimo diario',data:mins,borderColor:'rgba(13,59,112,.8)',backgroundColor:'rgba(13,59,112,.15)',borderWidth:1,pointRadius:0,tension:.3,fill:false,order:7});
+    dss.push(Object.assign({label:'Maximo diario',data:maxs,borderColor:'rgba(192,64,32,.6)',backgroundColor:'rgba(192,64,32,.15)',borderWidth:1,pointRadius:0,tension:.3,fill:'+2',order:5},dlOff));
+    dss.push(Object.assign({label:'P75',data:DAILY_RAW.ds.map(function(s){return s[4];}),borderColor:'transparent',backgroundColor:'rgba(0,150,180,.25)',borderWidth:0,pointRadius:0,tension:.3,fill:'+1',order:4},dlOff));
+    dss.push(Object.assign({label:'P25',data:DAILY_RAW.ds.map(function(s){return s[3];}),borderColor:'transparent',backgroundColor:'rgba(0,150,180,.25)',borderWidth:0,pointRadius:0,tension:.3,fill:false,order:6},dlOff));
+    dss.push(Object.assign({label:'Minimo diario',data:mins,borderColor:'rgba(13,59,112,.8)',backgroundColor:'rgba(13,59,112,.15)',borderWidth:1,pointRadius:0,tension:.3,fill:false,order:7},dlOff));
   }else{
-    dss.push({label:'Maximo historico',data:maxs,backgroundColor:maxs.map(function(v){return tempColorHex(v)+'cc';}),borderColor:maxs.map(function(v){return tempColorHex(v);}),borderWidth:1,borderRadius:4,order:3,type:'bar'});
-    dss.push({label:'Minimo historico',data:mins,backgroundColor:'rgba(13,59,112,.6)',borderColor:'#0d3b70',borderWidth:1,borderRadius:4,order:4,type:'bar'});
+    dss.push(Object.assign({label:'Maximo historico',data:maxs,backgroundColor:maxs.map(function(v){return tempColorHex(v)+'cc';}),borderColor:maxs.map(function(v){return tempColorHex(v);}),borderWidth:1,borderRadius:4,order:3,type:'bar'},dlBar));
+    dss.push(Object.assign({label:'Minimo historico',data:mins,backgroundColor:'rgba(13,59,112,.6)',borderColor:'#0d3b70',borderWidth:1,borderRadius:4,order:4,type:'bar'},dlBar));
   }
-  dss.push({label:isD?'Media historica diaria':'Media historica',data:means,type:'line',borderColor:'#00c8e0',backgroundColor:'transparent',borderWidth:isD?2:2.5,pointRadius:isD?0:4,pointBackgroundColor:'#00c8e0',tension:isD?.3:.4,fill:false,order:1});
+  dss.push(Object.assign({label:isD?'Media historica diaria':'Media historica',data:means,type:'line',borderColor:'#00c8e0',backgroundColor:'transparent',borderWidth:isD?2:2.5,pointRadius:isD?0:5,pointBackgroundColor:'#00c8e0',tension:isD?.3:.4,fill:false,order:1},isD?dlOff:dlLine));
   charts['rango']=new Chart(document.getElementById('chartRango').getContext('2d'),{
     type:isD?'line':'bar',data:{labels:labels,datasets:dss},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{filter:function(item){return!['P75','P25'].includes(item.text);},color:'#5a7fa0',font:{size:9},boxWidth:12,padding:8}},
+      layout:{padding:{top:isD?0:20}},
+      plugins:{
+        datalabels:{},
+        legend:{labels:{filter:function(item){return!['P75','P25'].includes(item.text);},color:'#5a7fa0',font:{size:9},boxWidth:12,padding:8}},
         tooltip:{backgroundColor:'#0d1f35',borderColor:'#1a3050',borderWidth:1,callbacks:{
           title:function(c){return isD?DAILY_RAW.dl[c[0].dataIndex]:c[0].label;},
           label:function(c){
@@ -783,7 +871,7 @@ function buildHistorico() {
 
 // ======= HEATMAP =======
 function buildHeatmap(){
-  renderHeatmap(currentRes);
+  renderHeatmapMonthly();
 }
 
 function renderHeatmap(res) {
@@ -797,7 +885,7 @@ function renderHeatmap(res) {
 function renderHeatmapMonthly(){
   var av=[];DATA.years.forEach(function(yr){DATA.monthly_means[yr].forEach(function(v){if(v!=null)av.push(v);});});
   var vm=Math.min.apply(null,av),vx=Math.max.apply(null,av);
-  var h='<thead><tr><th class="year-col">ANO</th>';
+  var h='<thead><tr><th class="year-col">AÑO</th>';
   DATA.month_labels.forEach(function(m){h+='<th>'+m+'</th>';});
   h+='<th style="padding-left:8px;font-size:.62rem">MEDIA</th></tr></thead><tbody>';
   DATA.years.forEach(function(yr){
@@ -806,22 +894,24 @@ function renderHeatmapMonthly(){
     var mean=valid.length?(valid.reduce(function(a,b){return a+b;},0)/valid.length).toFixed(1):'--';
     var cur=yr==='2026'||yr==='2025';
     h+='<tr><td class="year-lbl'+(cur?' current':'')+'">'+yr+'</td>';
-    vals.forEach(function(v){
-      if(v==null){h+='<td style="background:rgba(20,40,70,.4);color:rgba(90,127,160,.4)">--</td>';return;}
-      var bg=tempColorHex(v,vm,vx);var br=(v-vm)/(vx-vm);var tc=br>.55?'#1a1a1a':'#e0f0ff';
-      h+='<td style="background:'+bg+';color:'+tc+'" title="'+yr+': '+v+'°C">'+v.toFixed(1)+'</td>';
+    vals.forEach(function(v,mi){
+      var cls='hm-month-cell';
+      if(v==null){h+='<td class="'+cls+'" data-yr="'+yr+'" data-mi="'+mi+'" style="background:rgba(20,40,70,.4);color:rgba(90,127,160,.4)">--</td>';return;}
+      var bg=tempColorHex(v,vm,vx);
+      h+='<td class="'+cls+'" data-yr="'+yr+'" data-mi="'+mi+'" style="background:'+bg+';color:#ffffff">'+v.toFixed(1)+'</td>';
     });
     h+='<td style="padding-left:8px;color:var(--accent);font-weight:700;font-size:.68rem">'+mean+'°</td></tr>';
   });
   h+='<tr style="border-top:1px solid var(--border)"><td class="year-lbl" style="color:var(--accent)">MEDIA</td>';
-  DATA.monthly_stats.forEach(function(m){
-    var bg=tempColorHex(m.mean,vm,vx);var br=(m.mean-vm)/(vx-vm);var tc=br>.55?'#1a1a1a':'#e0f0ff';
-    h+='<td style="background:'+bg+';color:'+tc+';font-weight:700">'+m.mean.toFixed(1)+'</td>';
+  DATA.monthly_stats.forEach(function(m,mi){
+    var bg=tempColorHex(m.mean,vm,vx);
+    h+='<td class="hm-month-cell" data-yr="MEDIA" data-mi="'+mi+'" style="background:'+bg+';color:#ffffff;font-weight:700">'+m.mean.toFixed(1)+'</td>';
   });
   var tm=DATA.monthly_stats.reduce(function(a,m){return a+m.mean;},0)/12;
   h+='<td style="padding-left:8px;color:var(--accent);font-weight:700">'+tm.toFixed(1)+'°</td></tr></tbody>';
   document.getElementById('heatmapTable').innerHTML=h;
   setHeatmapScale(vm,vx);
+  attachMonthlyHeatmapEvents(vm,vx);
 }
 
 function renderHeatmapDaily(){
@@ -1393,10 +1483,168 @@ function autoUpdate() {
   }
 }
 
+// ======= MONTHLY HEATMAP TOOLTIP + ZOOM =======
+var MDA_HM = [31,28,31,30,31,30,31,31,30,31,30,31];
+var MSTARTS_HM = (function(){ var a=[0]; for(var i=0;i<11;i++) a.push(a[i]+MDA_HM[i]); return a; })();
+var hmTooltipEl = null;
+
+function ensureHmTooltip() {
+  if (!hmTooltipEl) {
+    hmTooltipEl = document.createElement('div');
+    hmTooltipEl.id = 'hmMonthTip';
+    hmTooltipEl.style.cssText = 'position:fixed;background:#0d1f35;border:1px solid #1a3050;border-radius:8px;padding:8px 12px;font-size:.68rem;font-family:"JetBrains Mono",monospace;color:#c8dff0;pointer-events:none;opacity:0;transition:opacity .12s;z-index:600;min-width:160px;max-width:220px;';
+    document.body.appendChild(hmTooltipEl);
+  }
+  return hmTooltipEl;
+}
+
+// Attach hover tooltip and click-zoom to monthly heatmap cells
+function attachMonthlyHeatmapEvents(vm, vx) {
+  document.querySelectorAll('.hm-month-cell').forEach(function(cell) {
+    var yr = cell.dataset.yr;
+    var mi = parseInt(cell.dataset.mi);
+    if (yr !== 'MEDIA') {
+      cell.style.cursor = 'pointer';
+      cell.addEventListener('click', function() {
+        openMzoom(yr, mi);
+      });
+    }
+  });
+}
+
+function positionTooltip(tt, ev) {
+  var x = ev.clientX + 14, y = ev.clientY - 10;
+  var w = tt.offsetWidth || 220, h = tt.offsetHeight || 300;
+  if (x + w > window.innerWidth - 10) x = ev.clientX - w - 10;
+  if (y + h > window.innerHeight - 10) y = window.innerHeight - h - 10;
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+}
+
+// ── MONTH ZOOM MODAL ──
+var mzoom = { yr: '2025', mi: 0 };
+
+function openMzoom(yr, mi) {
+  mzoom.yr = yr;
+  mzoom.mi = mi;
+  renderMzoom();
+  document.getElementById('mzoomOverlay').classList.add('open');
+}
+
+function closeMzoom(ev) {
+  if (ev && ev.target !== document.getElementById('mzoomOverlay')) return;
+  document.getElementById('mzoomOverlay').classList.remove('open');
+}
+
+function mzoomShift(delta, unit) {
+  if (unit === 'month') {
+    mzoom.mi += delta;
+    if (mzoom.mi < 0)  { mzoom.mi = 11; mzoom.yr = String(parseInt(mzoom.yr) - 1); }
+    if (mzoom.mi > 11) { mzoom.mi = 0;  mzoom.yr = String(parseInt(mzoom.yr) + 1); }
+  } else {
+    mzoom.yr = String(parseInt(mzoom.yr) + delta);
+  }
+  // Clamp year to data range
+  var yrInt = parseInt(mzoom.yr);
+  if (yrInt < 2007) mzoom.yr = '2007';
+  if (yrInt > 2026) mzoom.yr = '2026';
+  renderMzoom();
+}
+
+function renderMzoom() {
+  var yr = mzoom.yr, mi = mzoom.mi;
+  var s = MSTARTS_HM[mi], e = s + MDA_HM[mi];
+  var monthName = DATA.month_labels[mi];
+
+  // Gather this year's daily values for the month
+  var dayVals = [];
+  for (var d = s; d < e; d++) {
+    dayVals.push({ dl: DAILY_RAW.dl[d], day: d - s + 1, v: DAILY_RAW.yd[yr] ? DAILY_RAW.yd[yr][d] : null });
+  }
+
+  // Compute all-time scale for this month across all years
+  var allMonthVals = [];
+  DATA.years.forEach(function(y) {
+    for (var d = s; d < e; d++) {
+      var v = DAILY_RAW.yd[y] ? DAILY_RAW.yd[y][d] : null;
+      if (v != null) allMonthVals.push(v);
+    }
+  });
+  var vm = Math.min.apply(null, allMonthVals), vx = Math.max.apply(null, allMonthVals);
+
+  // Title
+  document.getElementById('mzoomTitle').textContent = monthName + ' ' + yr;
+  document.getElementById('mzoomYrLbl').textContent  = monthName + ' ' + yr;
+
+  var validVals = dayVals.map(function(d){return d.v;}).filter(function(v){return v!=null;});
+  var avg = validVals.length ? (validVals.reduce(function(a,b){return a+b;},0)/validVals.length).toFixed(1) : '—';
+  var max = validVals.length ? Math.max.apply(null,validVals).toFixed(1) : '—';
+  var min = validVals.length ? Math.min.apply(null,validVals).toFixed(1) : '—';
+  var maxDay = validVals.length ? dayVals.find(function(d){return d.v!=null && parseFloat(d.v.toFixed(1))===parseFloat(max);}) : null;
+  var minDay = validVals.length ? dayVals.find(function(d){return d.v!=null && parseFloat(d.v.toFixed(1))===parseFloat(min);}) : null;
+
+  document.getElementById('mzoomSub').textContent = validVals.length + ' días con dato · click en el fondo para cerrar';
+
+  // Color strip
+  var stripHtml = dayVals.map(function(d) {
+    var col = d.v != null ? tempColorHex(d.v, vm, vx) : 'rgba(15,32,55,.6)';
+    return '<div class="mzoom-strip-seg" style="background:'+col+'" title="'+d.dl+' '+(d.v!=null?d.v+'°C':'sin dato')+'"></div>';
+  }).join('');
+  document.getElementById('mzoomStrip').innerHTML = stripHtml;
+
+  // Day grid — 7 columns calendar layout
+  // Find weekday of first day (we'll skip the actual weekday logic, just lay out sequentially)
+  var gridHtml = '';
+  // Weekday headers
+  ['L','M','X','J','V','S','D'].forEach(function(w) {
+    gridHtml += '<div style="text-align:center;font-size:.56rem;color:var(--muted);padding:3px 0">'+w+'</div>';
+  });
+  // Empty cells before day 1 (use 0 offset — we just show days straight, 7 per row)
+  dayVals.forEach(function(d) {
+    if (d.v != null) {
+      var bg = tempColorHex(d.v, vm, vx);
+      var bright = (d.v - vm) / (vx - vm);
+      var tc = bright > 0.55 ? '#111' : '#eee';
+      gridHtml += '<div class="mzoom-day" style="background:'+bg+'" title="'+d.dl+' '+d.v+'°C">'
+        +'<span class="md-num">'+d.day+'</span>'
+        +'<span class="md-val" style="color:'+tc+'">'+d.v+'°</span>'
+        +'</div>';
+    } else {
+      gridHtml += '<div class="mzoom-day empty"><span class="md-num">'+d.day+'</span><span class="md-val" style="color:rgba(90,127,160,.4)">—</span></div>';
+    }
+  });
+  document.getElementById('mzoomDayGrid').innerHTML = gridHtml;
+
+  // Stats
+  document.getElementById('mzoomStats').innerHTML =
+    '<div class="mzoom-stat"><div class="ms-val" style="color:var(--accent)">'+avg+'°C</div><div class="ms-lbl">Promedio</div></div>'+
+    '<div class="mzoom-stat"><div class="ms-val" style="color:var(--warm)">'+max+'°C</div><div class="ms-lbl">Máximo'+(maxDay?' · '+maxDay.dl:'')+'</div></div>'+
+    '<div class="mzoom-stat"><div class="ms-val" style="color:var(--cold)">'+min+'°C</div><div class="ms-lbl">Mínimo'+(minDay?' · '+minDay.dl:'')+'</div></div>'+
+    '<div class="mzoom-stat"><div class="ms-val">'+(validVals.length>1?(Math.max.apply(null,validVals)-Math.min.apply(null,validVals)).toFixed(1)+'°C':'—')+'</div><div class="ms-lbl">Amplitud</div></div>';
+}
+
 // ======= INIT =======
 buildHeader();
 buildCiclo();
 autoUpdate();
 </script>
+<!-- MONTH ZOOM MODAL -->
+<div class="mzoom-overlay" id="mzoomOverlay" onclick="closeMzoom(event)">
+  <div class="mzoom-box" id="mzoomBox">
+    <button class="mzoom-close" onclick="closeMzoom(null)">✕</button>
+    <div class="mzoom-title" id="mzoomTitle"></div>
+    <div class="mzoom-sub" id="mzoomSub"></div>
+    <div class="mzoom-nav">
+      <button class="mzoom-nav-btn" onclick="mzoomShift(-1,'year')">◀ Año</button>
+      <button class="mzoom-nav-btn" onclick="mzoomShift(-1,'month')">◀ Mes</button>
+      <span class="mzoom-yr-lbl" id="mzoomYrLbl"></span>
+      <button class="mzoom-nav-btn" onclick="mzoomShift(+1,'month')">Mes ▶</button>
+      <button class="mzoom-nav-btn" onclick="mzoomShift(+1,'year')">Año ▶</button>
+    </div>
+    <div class="mzoom-strip" id="mzoomStrip"></div>
+    <div class="mzoom-day-grid" id="mzoomDayGrid"></div>
+    <div class="mzoom-stats" id="mzoomStats"></div>
+  </div>
+</div>
 </body>
 </html>
