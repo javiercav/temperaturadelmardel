@@ -401,6 +401,14 @@ function showPanel(id, e) {
   var rt = document.getElementById('resToggle');
   rt.style.opacity      = showRes ? '1' : '0.35';
   rt.style.pointerEvents= showRes ? '' : 'none';
+
+  // Always reset resolution to mensual when switching panels
+  if (showRes && currentRes !== 'mensual') {
+    currentRes = 'mensual';
+    document.getElementById('resMensual').classList.add('active');
+    document.getElementById('resDiario').classList.remove('active');
+  }
+
   if (!charts['_built_'+id]) {
     charts['_built_'+id] = true;
     if (id==='hoy')       initHoy();
@@ -415,6 +423,15 @@ function showPanel(id, e) {
     });
     if (charts['ciclo']) { charts['ciclo'].destroy(); delete charts['ciclo']; }
     buildCiclo(true);
+  }
+  // Rebuild res-aware panels with monthly resolution on each visit
+  if (id==='historico') {
+    if (charts['rango']) { charts['rango'].destroy(); delete charts['rango']; }
+    buildRango();
+  }
+  if (id==='sol') {
+    if (charts['sol']) { charts['sol'].destroy(); delete charts['sol']; }
+    buildSol();
   }
 }
 function setRes(r) {
