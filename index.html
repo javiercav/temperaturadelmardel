@@ -354,13 +354,20 @@ header{margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:2
 var DATA = null, DAILY_RAW = null;
 
 async function loadData() {
-  var resp = await fetch('/data/sea_data.json');
-  if (!resp.ok) throw new Error('No se pudo cargar sea_data.json: ' + resp.status);
-  var sd = await resp.json();
+  // Try the standard path, fall back to same-directory
+  var paths = ['/data/sea_data.json', './data/sea_data.json', 'data/sea_data.json'];
+  var sd = null;
+  var lastErr = '';
+  for (var i = 0; i < paths.length; i++) {
+    try {
+      var resp = await fetch(paths[i]);
+      if (resp.ok) { sd = await resp.json(); break; }
+      lastErr = 'HTTP ' + resp.status + ' for ' + paths[i];
+    } catch(e) { lastErr = e.message + ' (' + paths[i] + ')'; }
+  }
+  if (!sd) throw new Error('No se pudo cargar los datos. ' + lastErr);
   DATA      = sd.viz;
   DAILY_RAW = sd.daily;
-  // Back-compat: ensure DAILY_RAW has today_idx (computed dynamically)
-  DAILY_RAW.today_idx = dateToIdx(new Date());
 }
 
 
@@ -775,28 +782,6 @@ function buildCiclo(buildSel) {
   document.getElementById('cicloLegend').innerHTML = legendHtml;
 }
 
-// ======= MESES =======
-var mesesBuilt=false;
-function buildMeses(){if(!mesesBuilt){buildMesesMonthly();mesesBuilt=true;}buildRango();}
-function buildMesesMonthly(){
-  var pal=['#ff7c50','#a0d0ff','#00c8e0','#60d0a0','#ffd060','#c080ff'];
-  var yrs=['2026','2025','2024','2023','2022','2021'];
-  new Chart(document.getElementById('chartMeses').getContext('2d'),{type:'line',
-    data:{labels:DATA.month_labels,datasets:yrs.map(function(yr,i){return{
-      label:yr,data:DATA.monthly_means[yr],borderColor:pal[i],backgroundColor:pal[i]+'20',
-      borderWidth:yr==='2026'?3:2,pointRadius:3,tension:.4,fill:false};})},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#5a7fa0',font:{size:9},boxWidth:12,padding:8}},
-        tooltip:{backgroundColor:'#0d1f35',borderColor:'#1a3050',borderWidth:1,
-          callbacks:{label:function(c){return ' '+c.dataset.label+': '+(c.parsed.y!=null?c.parsed.y.toFixed(1):'N/D')+'°C';}}}},
-      scales:{x:{grid:{color:'rgba(26,48,80,.5)'}},y:{min:8,max:24,grid:{color:'rgba(26,48,80,.5)'},ticks:{callback:function(v){return v+'°';}}}}}});
-  var hotM=DATA.monthly_stats.reduce(function(mi,m,i,a){return m.mean>a[mi].mean?i:mi;},0);
-  var coldM=DATA.monthly_stats.reduce(function(mi,m,i,a){return m.mean<a[mi].mean?i:mi;},0);
-  document.getElementById('mesInsights').innerHTML=
-    '<div class="insight"><div class="i-val" style="color:var(--warm)">'+DATA.monthly_stats[hotM].mean+'°C</div><div class="i-lbl">Mes mas calido</div><div class="i-sub">'+DATA.month_labels[hotM]+'</div></div>'+
-    '<div class="insight"><div class="i-val" style="color:var(--cold)">'+DATA.monthly_stats[coldM].mean+'°C</div><div class="i-lbl">Mes mas frio</div><div class="i-sub">'+DATA.month_labels[coldM]+'</div></div>'+
-    '<div class="insight"><div class="i-val">'+(DATA.monthly_stats[hotM].mean-DATA.monthly_stats[coldM].mean).toFixed(1)+'°C</div><div class="i-lbl">Amplitud anual</div><div class="i-sub">'+DATA.month_labels[coldM]+' - '+DATA.month_labels[hotM]+'</div></div>';
-}
 function buildRango(){
   if(charts['rango']){charts['rango'].destroy();delete charts['rango'];}
   var isD=currentRes==='diario';
@@ -1532,13 +1517,7 @@ function showUpdateStatus(cache, msg, isOk) {
 function rebuildLiveCharts() {
   // Ciclo: always rebuild if built
   if (charts['ciclo']) { charts['ciclo'].destroy(); delete charts['ciclo']; buildCiclo(false); }
-  // Meses monthly line chart: destroy & rebuild
-  if (charts['_built_meses']) {
-    var c = Chart.getChart('chartMeses');
-    if (c) { c.destroy(); mesesBuilt = false; }
-    if (currentPanel === 'meses') buildMesesMonthly();
-  }
-  // Hoy: if shown, re-render
+  // Hoy: re-render if shown
   if (currentPanel === 'hoy' && charts['hoy']) { renderHoy(); }
   // Heatmap: rebuild if shown
   if (charts['_built_heatmap'] && currentPanel === 'heatmap') buildHeatmap();
@@ -1702,13 +1681,19 @@ function renderMzoom() {
   document.getElementById('loadingOverlay').style.pointerEvents = 'all';
   try {
     await loadData();
+    // Set today_idx now that dateToIdx is defined
+    DAILY_RAW.today_idx = dateToIdx(new Date());
   } catch(e) {
-    document.getElementById('loadingMsg').textContent = 'Error cargando datos: ' + e.message;
-    console.error(e);
+    var msg = 'Error cargando datos: ' + e.message;
+    document.getElementById('loadingMsg').textContent = msg;
+    document.getElementById('loadingMsg').style.color = '#ff7c50';
+    console.error('loadData failed:', e);
     return;
   }
-  document.getElementById('loadingOverlay').style.opacity = '0';
-  document.getElementById('loadingOverlay').style.pointerEvents = 'none';
+  var overlay = document.getElementById('loadingOverlay');
+  overlay.style.opacity = '0';
+  overlay.style.pointerEvents = 'none';
+  setTimeout(function(){ overlay.style.display = 'none'; }, 500);
   buildHeader();
   buildCiclo();
   autoUpdate();
