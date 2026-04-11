@@ -452,18 +452,45 @@ function setRes(r) {
 
 // ======= HEADER =======
 function buildHeader() {
-  var means = DATA.annual_means;
-  var gm = (means.reduce(function(a,b){return a+b;},0)/means.length).toFixed(1);
-  var absMax=-99,absMaxI=0,absMin=99,absMinI=0;
-  DAILY_RAW.ds.forEach(function(s,i){
-    if(s[1]!=null&&s[1]>absMax){absMax=s[1];absMaxI=i;}
-    if(s[0]!=null&&s[0]<absMin){absMin=s[0];absMinI=i;}
-  });
-  document.getElementById('headerStats').innerHTML=
-    '<div class="stat-chip"><span class="val">'+gm+'°</span><span class="lbl">Media global</span></div>'+
-    '<div class="stat-chip"><span class="val" style="color:var(--warm)">'+absMax.toFixed(1)+'°</span><span class="lbl">Max. hist. diario</span><span class="date-tag">'+DAILY_RAW.dl[absMaxI]+' '+DAILY_RAW.ds[absMaxI][6]+'</span></div>'+
-    '<div class="stat-chip"><span class="val" style="color:var(--cold)">'+absMin.toFixed(1)+'°</span><span class="lbl">Min. hist. diario</span><span class="date-tag">'+DAILY_RAW.dl[absMinI]+' '+DAILY_RAW.ds[absMinI][5]+'</span></div>'+
-    '<div class="stat-chip"><span class="val">+'+DATA.slope_decade+'</span><span class="lbl">Tend./decada</span></div>';
+  var today = new Date();
+  var idx   = dateToIdx(today);
+  var dl    = DAILY_RAW.dl[idx];
+  var ds    = DAILY_RAW.ds[idx]; // [min, max, mean, p25, p75, minYr, maxYr]
+
+  // Find most recent year that has data for this day-of-year
+  var latestYr = null, latestVal = null;
+  for (var i = 0; i < DATA.years.length; i++) {
+    var yr = DATA.years[i];
+    var v  = DAILY_RAW.yd[yr] ? DAILY_RAW.yd[yr][idx] : null;
+    if (v != null) { latestYr = yr; latestVal = v; break; }
+  }
+
+  // "Hoy" chip — highlighted when we have a value
+  var todayChip = '';
+  if (latestVal != null) {
+    var diff    = (latestVal - ds[2]);
+    var sign    = diff >= 0 ? '+' : '';
+    var diffCol = diff >= 0 ? 'var(--warm)' : 'var(--cold)';
+    todayChip =
+      '<div class="stat-chip" style="border-color:rgba(255,124,80,.5);background:rgba(255,124,80,.1);min-width:96px">'
+      + '<span class="val" style="color:var(--warm)">'+latestVal.toFixed(1)+'°</span>'
+      + '<span class="lbl">Hoy \u00b7 '+dl+'</span>'
+      + '<span class="date-tag" style="color:'+diffCol+'">'+sign+diff.toFixed(1)+'\u00b0 vs media</span>'
+      + '</div>';
+  } else {
+    todayChip =
+      '<div class="stat-chip" style="border-color:rgba(255,124,80,.3);background:rgba(255,124,80,.05);min-width:96px">'
+      + '<span class="val" style="color:var(--muted)">\u2014</span>'
+      + '<span class="lbl">Hoy \u00b7 '+dl+'</span>'
+      + '<span class="date-tag">sin dato a\u00fan</span>'
+      + '</div>';
+  }
+
+  document.getElementById('headerStats').innerHTML =
+    todayChip +
+    '<div class="stat-chip"><span class="val" style="color:var(--accent)">'+ds[2]+'\u00b0</span><span class="lbl">Media \u00b7 '+dl+'</span><span class="date-tag">'+DATA.years.length+' a\u00f1os de serie</span></div>'+
+    '<div class="stat-chip"><span class="val" style="color:var(--cold)">'+ds[0]+'\u00b0</span><span class="lbl">M\u00edn. \u00b7 '+dl+'</span><span class="date-tag">'+ds[5]+'</span></div>'+
+    '<div class="stat-chip"><span class="val" style="color:var(--warm)">'+ds[1]+'\u00b0</span><span class="lbl">M\u00e1x. \u00b7 '+dl+'</span><span class="date-tag">'+ds[6]+'</span></div>';
 }
 
 // ======= HOY =======
@@ -1245,9 +1272,11 @@ function buildSol() {
 var MONTH_NAMES_URL = ['january','february','march','april','may','june','july','august','september','october','november','december'];
 var MONTH_DAYS      = [31,28,31,30,31,30,31,31,30,31,30,31];
 var LS_KEY          = 'mdq_sea_temp_live';
+var SERVER_DATA_URL = '/api/data'; // Vercel serverless function
 var PROXIES         = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?'
+  '/api/proxy?url=',   // Vercel serverless function (server-side, sin restricciones)
+  'https://api.allorigins.win/raw?url=', // fallback externo (GitHub Pages, etc.)
+  'https://corsproxy.io/?'            // último recurso
 ];
 
 function monthDayToIdx(m, d) { // m: 0-based month, d: 1-based day
@@ -1259,17 +1288,26 @@ function monthDayToIdx(m, d) { // m: 0-based month, d: 1-based day
 // Last day already embedded in the file — never re-fetch anything up to this index
 var LAST_EMBEDDED_IDX = 71; // 13-Mar-2026 — all data up to here is baked in
 
-// Load cached live data from localStorage
-function loadCache() {
+// Load cached live data from localStorage (fallback for GitHub Pages)
+function loadLocalCache() {
   try {
     var raw = localStorage.getItem(LS_KEY);
     return raw ? JSON.parse(raw) : {lastFetch: null, data: {}};
   } catch(e) { return {lastFetch: null, data: {}}; }
 }
 
-// Save to localStorage
-function saveCache(cache) {
+// Save to localStorage (fallback for GitHub Pages)
+function saveLocalCache(cache) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(cache)); } catch(e) {}
+}
+
+// Save to Netlify Blob (server-side) — best-effort, no await needed
+function saveServerCache(cache) {
+  fetch(SERVER_DATA_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(cache)
+  }).catch(function() {}); // fire-and-forget
 }
 
 // Find the last day index that has 2026 data (embedded + cache)
@@ -1407,25 +1445,51 @@ function monthsToFetch(year, lastIdx, today) {
 }
 
 // Main update function — forceAll = ignore cache age
+// Strategy: try server-side Netlify Blob POST first; fall back to client-side proxies
 function fetchAndUpdate(forceAll) {
   var btn    = document.getElementById('updateBtn');
   var status = document.getElementById('updateStatus');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin">⟳</span> Actualizando...';
+  btn.innerHTML = '<span class="spin">\u27f3</span> Actualizando...';
   status.className = 'update-status';
   status.innerHTML = 'Consultando seatemperature.info...';
 
-  var cache   = loadCache();
-  var today   = new Date();
+  var today    = new Date();
   var todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
 
-  // Check if already updated today
-  if (!forceAll && cache.lastFetch === todayStr) {
+  function done(cache, msg, isOk) {
     applyCache(cache);
-    showUpdateStatus(cache, 'Ya actualizado hoy', false);
-    btn.disabled = false;
-    btn.innerHTML = '↻ Actualizar ahora';
+    buildHeader();
     rebuildLiveCharts();
+    showUpdateStatus(cache, msg, isOk);
+    btn.disabled = false;
+    btn.innerHTML = '\u21bb Actualizar ahora';
+  }
+
+  // === Attempt 1: server-side POST (Netlify Blob + server fetch) ===
+  fetch(SERVER_DATA_URL, { method: 'POST' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Server returned ' + r.status);
+      return r.json();
+    })
+    .then(function(freshCache) {
+      // Server handled everything — just apply and show
+      saveLocalCache(freshCache); // keep local copy as extra backup
+      var count = Object.keys(freshCache.data).length;
+      done(freshCache, 'Servidor: ' + count + ' d\u00edas almacenados', count > 0);
+    })
+    .catch(function() {
+      // === Attempt 2: client-side proxy fetch (GitHub Pages / server unavailable) ===
+      clientSideFetch(forceAll, today, todayStr, done);
+    });
+}
+
+// Client-side fallback: fetch via CORS proxies + save to localStorage
+function clientSideFetch(forceAll, today, todayStr, done) {
+  var cache = loadLocalCache();
+
+  if (!forceAll && cache.lastFetch === todayStr) {
+    done(cache, 'Ya actualizado hoy', false);
     return;
   }
 
@@ -1433,15 +1497,10 @@ function fetchAndUpdate(forceAll) {
   var months  = monthsToFetch(2026, lastIdx, today);
 
   if (months.length === 0) {
-    applyCache(cache);
-    showUpdateStatus(cache, 'Sin cambios nuevos', false);
-    btn.disabled = false;
-    btn.innerHTML = '↻ Actualizar ahora';
-    rebuildLiveCharts();
+    done(cache, 'Sin cambios nuevos', false);
     return;
   }
 
-  // Fetch each missing month + homepage (for today/yesterday values)
   var monthPromises = months.map(function(m) {
     var url = 'https://seatemperature.info/'+MONTH_NAMES_URL[m]+'/mar-del-plata-water-temperature.html';
     return fetchViaProxy(url).then(function(html) {
@@ -1450,17 +1509,15 @@ function fetchAndUpdate(forceAll) {
       for (var day in temps) {
         var idx = monthDayToIdx(m, parseInt(day));
         var dayDate = new Date(2026, m, parseInt(day));
-        // Include today (<= today, not strictly <)
         if (idx > LAST_EMBEDDED_IDX && dayDate <= today) {
           cache.data[String(idx)] = temps[day];
           added++;
         }
       }
       return added;
-    }).catch(function() { return 0; });
+    }).catch(function(e) { console.warn('Proxy error month '+m+':', e); return 0; });
   });
 
-  // Also fetch homepage for today/yesterday (monthly page often has 1-day delay)
   var homepagePromise = fetchViaProxy('https://seatemperature.info/mar-del-plata-water-temperature.html')
     .then(function(html) {
       var parsed = parseHomepage(html);
@@ -1476,25 +1533,17 @@ function fetchAndUpdate(forceAll) {
         }
       }
       return added;
-    }).catch(function() { return 0; });
+    }).catch(function(e) { console.warn('Proxy error homepage:', e); return 0; });
 
-  var promises = monthPromises.concat([homepagePromise]);
-
-  Promise.all(promises).then(function(counts) {
+  Promise.all(monthPromises.concat([homepagePromise])).then(function(counts) {
     var total = counts.reduce(function(a,b){return a+b;},0);
     cache.lastFetch = todayStr;
-    saveCache(cache);
-    applyCache(cache);
-    rebuildLiveCharts();
-    var msg = total > 0 ? total+' dia(s) nuevos incorporados' : 'Datos al dia';
-    showUpdateStatus(cache, msg, total > 0);
-    btn.disabled = false;
-    btn.innerHTML = '↻ Actualizar ahora';
+    saveLocalCache(cache);
+    saveServerCache(cache); // best-effort sync to server blob
+    var msg = total > 0 ? total+' d\u00eda(s) nuevos incorporados' : 'Datos al d\u00eda';
+    done(cache, msg, total > 0);
   }).catch(function() {
-    applyCache(cache);
-    showUpdateStatus(cache, 'Error de conexion — usando datos en cache', true);
-    btn.disabled = false;
-    btn.innerHTML = '↻ Actualizar ahora';
+    done(cache, 'Error de conexi\u00f3n — usando datos en cache', false);
   });
 }
 
@@ -1515,6 +1564,8 @@ function showUpdateStatus(cache, msg, isOk) {
 
 // Rebuild charts that display 2026 live data
 function rebuildLiveCharts() {
+  // Always refresh header with today's updated live value
+  buildHeader();
   // Ciclo: always rebuild if built
   if (charts['ciclo']) { charts['ciclo'].destroy(); delete charts['ciclo']; buildCiclo(false); }
   // Meses monthly line chart: destroy & rebuild
@@ -1529,23 +1580,45 @@ function rebuildLiveCharts() {
   if (charts['_built_heatmap'] && currentPanel === 'heatmap') buildHeatmap();
 }
 
-// Auto-run on page load (silent, uses cache first)
+// Auto-run on page load — tries server blob first, falls back to localStorage
 function autoUpdate() {
-  var cache = loadCache();
-  // Apply any cached data immediately (instant, no network)
-  if (Object.keys(cache.data).length > 0) {
-    applyCache(cache);
-    showUpdateStatus(cache, 'Datos en cache aplicados', false);
-  } else {
-    showUpdateStatus(cache, 'Sin datos en cache', false);
-  }
-  // Then fetch in background if not updated today
-  var today = new Date();
+  var today    = new Date();
   var todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
-  if (cache.lastFetch !== todayStr) {
-    // Small delay so page renders first
-    setTimeout(function() { fetchAndUpdate(false); }, 1200);
-  }
+
+  showUpdateStatus({lastFetch: null, data: {}}, 'Verificando datos...', null);
+
+  // 1. Try server-side Netlify Blob cache
+  fetch(SERVER_DATA_URL)
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(serverCache) {
+      if (serverCache && Object.keys(serverCache.data).length > 0) {
+        applyCache(serverCache);
+        buildHeader();
+        rebuildLiveCharts();
+        showUpdateStatus(serverCache, 'Datos del servidor aplicados', false);
+      }
+      // If stale, trigger background server-side refresh
+      if (!serverCache || serverCache.lastFetch !== todayStr) {
+        setTimeout(function() { fetchAndUpdate(false); }, 1200);
+      } else {
+        showUpdateStatus(serverCache, 'Al d\u00eda', false);
+      }
+    })
+    .catch(function() {
+      // Server not available (GitHub Pages) — fall back to localStorage
+      var localCache = loadLocalCache();
+      if (Object.keys(localCache.data).length > 0) {
+        applyCache(localCache);
+        buildHeader();
+        rebuildLiveCharts();
+        showUpdateStatus(localCache, 'Cache local aplicada', false);
+      } else {
+        showUpdateStatus({lastFetch: null, data: {}}, 'Sin datos en cache', false);
+      }
+      if (localCache.lastFetch !== todayStr) {
+        setTimeout(function() { fetchAndUpdate(false); }, 1200);
+      }
+    });
 }
 
 // ======= MONTHLY HEATMAP TOOLTIP + ZOOM =======
