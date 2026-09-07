@@ -27,6 +27,7 @@
   html{
     background: #0a0f14;
     min-height: 100%;
+    overflow-x: hidden;
   }
   body{
     min-height: 100vh;
@@ -35,11 +36,13 @@
     color: #dfe6ec;
     font-family: 'JetBrains Mono', monospace;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   .wrap{
     max-width: 720px;
     margin: 0 auto;
     padding: 20px 16px 48px;
+    overflow-x: hidden;
   }
   header.top{
     display:flex;
@@ -69,6 +72,7 @@
     align-items:center;
     gap: 10px;
     margin-bottom: 6px;
+    min-width: 0;
   }
   .nav-btn{
     background: var(--panel);
@@ -88,22 +92,26 @@
 
   .date-block{
     flex: 1;
+    min-width: 0;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 6px;
-    padding: 8px 14px;
+    padding: 8px 12px;
     display:flex;
     align-items:center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     position: relative;
   }
   .date-display{
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
+    font-size: clamp(14px, 5vw, 24px);
     letter-spacing: 0.5px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-transform: uppercase;
+    min-width: 0;
   }
   .today-pill{
     font-size: 10px;
@@ -112,17 +120,24 @@
     border-radius: 999px;
     padding: 2px 8px;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
   }
   input[type=date]{
-    background: transparent;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
     border: none;
-    color: var(--muted);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    background: transparent;
+    color: transparent;
+    opacity: 0;
     cursor: pointer;
-    filter: invert(1) grayscale(1) brightness(1.6) opacity(0.6);
-    accent-color: var(--high);
   }
+  /* en iOS Safari el texto del input no se puede ocultar de otra forma;
+     con opacity:0 + position:absolute queda invisible pero sigue abriendo
+     el selector nativo al tocar cualquier parte de la barra de fecha */
   .today-btn{
     background: none;
     border: 1px solid var(--muted-2);
@@ -165,7 +180,7 @@
     padding: 14px 10px 6px;
     position: relative;
   }
-  #tideChart{ display:block; width: 100%; height: 260px; touch-action: none; }
+  #tideChart{ display:block; width: 100%; height: 200px; touch-action: none; }
   .tooltip-box{
     position: absolute;
     pointer-events: none;
