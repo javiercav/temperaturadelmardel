@@ -282,6 +282,7 @@
       </div>
     </div>
     <button class="nav-btn" id="nextBtn" aria-label="Día siguiente">›</button>
+    <button class="nav-btn" id="playBtn" aria-label="Reproducir">▶</button>
   </div>
 
   <div class="now-strip" id="nowStrip" style="display:none;">
@@ -394,6 +395,7 @@ const datePicker = document.getElementById('datePicker');
 const todayPill = document.getElementById('todayPill');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
+const playBtn = document.getElementById('playBtn');
 const eventsList = document.getElementById('eventsList');
 const nowStrip = document.getElementById('nowStrip');
 const nowHeight = document.getElementById('nowHeight');
@@ -435,6 +437,7 @@ function render(dateKey){
 
   prevBtn.disabled = dateKey === MIN_KEY;
   nextBtn.disabled = dateKey === MAX_KEY;
+  playBtn.disabled = dateKey === MAX_KEY;
 
   const curve = buildDayCurve(dateKey);
   const events = classifyEvents(dateKey);
@@ -653,14 +656,39 @@ canvas.addEventListener('pointerleave', () => { tooltipBox.style.display = 'none
 canvas.addEventListener('pointerdown', (e) => showTooltip(e.clientX, e.clientY));
 
 // ---------- events ----------
-prevBtn.addEventListener('click', () => render(shiftDay(currentKey, -1)));
-nextBtn.addEventListener('click', () => render(shiftDay(currentKey, 1)));
-datePicker.addEventListener('change', () => { if (datePicker.value) render(datePicker.value); });
+prevBtn.addEventListener('click', () => { stopPlay(); render(shiftDay(currentKey, -1)); });
+nextBtn.addEventListener('click', () => { stopPlay(); render(shiftDay(currentKey, 1)); });
+datePicker.addEventListener('change', () => { if (datePicker.value) { stopPlay(); render(datePicker.value); } });
+
+// ---------- reproducción automática (avanza 1 día cada 0.5s) ----------
+let playTimer = null;
+
+function stopPlay(){
+  if (playTimer){
+    clearInterval(playTimer);
+    playTimer = null;
+    playBtn.textContent = '▶';
+    playBtn.setAttribute('aria-label', 'Reproducir');
+  }
+}
+
+function startPlay(){
+  playBtn.textContent = '⏸';
+  playBtn.setAttribute('aria-label', 'Pausar');
+  playTimer = setInterval(() => {
+    if (currentKey === MAX_KEY){ stopPlay(); return; }
+    render(shiftDay(currentKey, 1));
+  }, 500);
+}
+
+playBtn.addEventListener('click', () => {
+  if (playTimer) stopPlay(); else startPlay();
+});
 
 // keyboard navigation
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') render(shiftDay(currentKey, -1));
-  if (e.key === 'ArrowRight') render(shiftDay(currentKey, 1));
+  if (e.key === 'ArrowLeft') { stopPlay(); render(shiftDay(currentKey, -1)); }
+  if (e.key === 'ArrowRight') { stopPlay(); render(shiftDay(currentKey, 1)); }
 });
 
 // refresh the "now" marker every minute if on today
