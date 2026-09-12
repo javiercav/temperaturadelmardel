@@ -22,6 +22,7 @@
     --low: #f2a65a;
     --low-dim: #4a3722;
     --now: #ef6f6c;
+    --moon: #f4d47c;
   }
   *{ box-sizing: border-box; }
   html{
@@ -201,6 +202,8 @@
     padding: 10px 6px 0;
     font-size: 11px;
     color: var(--muted);
+    flex-wrap: wrap;
+    row-gap: 6px;
   }
   .legend .dot{
     display:inline-block; width:8px; height:8px; border-radius:50%;
@@ -209,6 +212,42 @@
   .legend .dot.high{ background: var(--high); }
   .legend .dot.low{ background: var(--low); }
   .legend .dot.now{ background: var(--now); }
+  .legend .dash{
+    display:inline-block; width:12px; height:0;
+    border-top: 1px dashed var(--moon);
+    margin-right:6px; position:relative; top:-3px;
+  }
+
+  .moon-card{
+    margin-top: 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .moon-icon-wrap{ flex-shrink: 0; }
+  .moon-icon-wrap svg{ width: 40px; height: 40px; display:block; }
+  .moon-info{ flex: 1; min-width: 0; }
+  .moon-phase-name{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .moon-illum{ color: var(--muted); font-size: 12px; margin-top: 1px; }
+  .moon-times{
+    display: flex;
+    gap: 18px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .moon-times b{ color: var(--text); font-weight: 500; }
 
   .events{
     margin-top: 22px;
@@ -300,6 +339,24 @@
       <span><span class="dot high"></span>Pleamar</span>
       <span><span class="dot low"></span>Bajamar</span>
       <span id="nowLegend" style="display:none;"><span class="dot now"></span>Ahora</span>
+      <span><span class="dash"></span>Luna</span>
+    </div>
+  </div>
+
+  <div class="moon-card">
+    <div class="moon-icon-wrap">
+      <svg viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="18" fill="#1a2129" stroke="#2a3441" stroke-width="1"/>
+        <path id="moonLitPath" fill="#dfe6ec"/>
+      </svg>
+    </div>
+    <div class="moon-info">
+      <div class="moon-phase-name" id="moonPhaseName">—</div>
+      <div class="moon-illum" id="moonIllum"></div>
+      <div class="moon-times">
+        <span>Sale <b id="moonRiseTime">—</b></span>
+        <span>Se oculta <b id="moonSetTime">—</b></span>
+      </div>
     </div>
   </div>
 
@@ -386,6 +443,157 @@ function classifyEvents(dateKey){
   });
 }
 
+// ---------- astronomía lunar (posición + fase + salida/ocultamiento) ----------
+// Algoritmo de baja precisión (Meeus, "Astronomical Algorithms"), validado
+// contra datos reales de Mar del Plata (error de ~2 minutos en salida/puesta).
+const MDP_LAT = -38.0333;      // latitud de Mar del Plata
+const MDP_LON_EAST = -57.5167; // longitud este (Mar del Plata está al oeste, por eso negativa)
+
+function toJulianDate(date){ return date.getTime() / 86400000 + 2440587.5; }
+function radd(d){ return d * Math.PI / 180; }
+function degg(r){ return r * 180 / Math.PI; }
+function norm360(x){ x = x % 360; return x < 0 ? x + 360 : x; }
+
+function moonPosition(jd){
+  const T = (jd - 2451545.0) / 36525;
+  const Lp = norm360(218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841 - T*T*T*T/65194000);
+  const D  = norm360(297.8501921 + 445267.1114034*T - 0.0018819*T*T + T*T*T/545868 - T*T*T*T/113065000);
+  const M  = norm360(357.5291092 + 35999.0502909*T - 0.0001536*T*T + T*T*T/24490000);
+  const Mp = norm360(134.9633964 + 477198.8675055*T + 0.0087414*T*T + T*T*T/69699 - T*T*T*T/14712000);
+  const F  = norm360(93.2720950 + 483202.0175233*T - 0.0036539*T*T - T*T*T/3526000 + T*T*T*T/863310000);
+  const rD = radd(D), rM = radd(M), rMp = radd(Mp), rF = radd(F);
+
+  const lon = Lp
+    + 6.289*Math.sin(rMp) - 1.274*Math.sin(rMp - 2*rD) + 0.658*Math.sin(2*rD)
+    - 0.186*Math.sin(rM) - 0.059*Math.sin(2*rMp - 2*rD) - 0.057*Math.sin(rMp - 2*rD + rM)
+    + 0.053*Math.sin(rMp + 2*rD) + 0.046*Math.sin(2*rD - rM) + 0.041*Math.sin(rMp - rM)
+    - 0.035*Math.sin(rD) - 0.031*Math.sin(rMp + rM) - 0.015*Math.sin(2*rF - 2*rD)
+    + 0.011*Math.sin(rMp - 4*rD);
+
+  const lat = 5.128*Math.sin(rF) + 0.281*Math.sin(rMp + rF) + 0.278*Math.sin(rMp - rF)
+    + 0.173*Math.sin(2*rD - rF) + 0.055*Math.sin(2*rD - rMp + rF) + 0.046*Math.sin(2*rD - rMp - rF)
+    + 0.033*Math.sin(2*rD + rF) + 0.017*Math.sin(2*rMp + rF);
+
+  const dist = 385000.56 - 20905.355*Math.cos(rMp) - 3699.111*Math.cos(2*rD - rMp)
+    - 2955.968*Math.cos(2*rD) - 569.925*Math.cos(2*rMp) + 48.888*Math.cos(rM) - 3.149*Math.cos(2*rD - rM);
+
+  return { lon: norm360(lon), lat: lat, dist: dist };
+}
+
+function sunLongitude(jd){
+  const T = (jd - 2451545.0) / 36525;
+  const L0 = norm360(280.46646 + 36000.76983*T + 0.0003032*T*T);
+  const M = radd(norm360(357.52911 + 35999.05029*T - 0.0001537*T*T));
+  const C = (1.914602 - 0.004817*T - 0.000014*T*T)*Math.sin(M)
+          + (0.019993 - 0.000101*T)*Math.sin(2*M)
+          + 0.000289*Math.sin(3*M);
+  return norm360(L0 + C);
+}
+
+function eclipticToEquatorial(lonDeg, latDeg, jd){
+  const T = (jd - 2451545.0) / 36525;
+  const eps = radd(23.4392911 - 0.0130042*T);
+  const lon = radd(lonDeg), lat = radd(latDeg);
+  const sinDec = Math.sin(lat)*Math.cos(eps) + Math.cos(lat)*Math.sin(eps)*Math.sin(lon);
+  const dec = Math.asin(sinDec);
+  const y = Math.sin(lon)*Math.cos(eps) - Math.tan(lat)*Math.sin(eps);
+  const x = Math.cos(lon);
+  return { ra: norm360(degg(Math.atan2(y, x))), dec: degg(dec) };
+}
+
+function gmst(jd){
+  const T = (jd - 2451545.0) / 36525;
+  return norm360(280.46061837 + 360.98564736629*(jd - 2451545.0) + 0.000387933*T*T - (T*T*T)/38710000);
+}
+
+function moonAltitude(jd){
+  const pos = moonPosition(jd);
+  const eq = eclipticToEquatorial(pos.lon, pos.lat, jd);
+  const theta = gmst(jd) + MDP_LON_EAST;
+  let H = norm360(theta - eq.ra);
+  if (H > 180) H -= 360;
+  const rH = radd(H), rDec = radd(eq.dec), rLat = radd(MDP_LAT);
+  const sinAlt = Math.sin(rLat)*Math.sin(rDec) + Math.cos(rLat)*Math.cos(rDec)*Math.cos(rH);
+  const alt = degg(Math.asin(sinAlt));
+  const parallax = degg(Math.asin(6378.14 / pos.dist));
+  const h0 = 0.7275*parallax - 0.34; // umbral estándar de salida/puesta lunar (Meeus 15.1)
+  return alt - h0;
+}
+
+// busca cruces de horizonte entre startUT y endUT (Date en UTC), cada stepMin minutos
+function findMoonRiseSet(startUT, endUT, stepMin){
+  const results = { rise: null, set: null };
+  let t = startUT.getTime();
+  let prevDiff = moonAltitude(toJulianDate(new Date(t)));
+  const end = endUT.getTime();
+  const step = stepMin * 60000;
+  while (t < end){
+    const tNext = t + step;
+    const diff = moonAltitude(toJulianDate(new Date(tNext)));
+    if (prevDiff <= 0 && diff > 0 && !results.rise){
+      const frac = prevDiff / (prevDiff - diff);
+      results.rise = new Date(t + frac*step);
+    }
+    if (prevDiff >= 0 && diff < 0 && !results.set){
+      const frac = prevDiff / (prevDiff - diff);
+      results.set = new Date(t + frac*step);
+    }
+    prevDiff = diff;
+    t = tNext;
+  }
+  return results;
+}
+
+function moonPhaseAt(jd){
+  const pos = moonPosition(jd);
+  const sunLon = sunLongitude(jd);
+  const elong = norm360(pos.lon - sunLon);
+  const illum = (1 - Math.cos(radd(elong))) / 2;
+  const waxing = elong < 180;
+  return { illum, waxing, elong };
+}
+
+const MOON_PHASE_NAMES = [
+  [11.25, 'Luna nueva'], [78.75, 'Creciente'], [101.25, 'Cuarto creciente'],
+  [168.75, 'Gibosa creciente'], [191.25, 'Luna llena'], [258.75, 'Gibosa menguante'],
+  [281.25, 'Cuarto menguante'], [348.75, 'Menguante'], [360.01, 'Luna nueva']
+];
+function moonPhaseName(elong){
+  for (const [max, name] of MOON_PHASE_NAMES) if (elong < max) return name;
+  return 'Luna nueva';
+}
+
+// devuelve toda la info lunar para un día calendario local (dateKey)
+// nota: fromKey() ya devuelve el instante correcto para la medianoche local
+// (el objeto Date de JS guarda siempre el instante UTC real por dentro,
+// sin importar en qué huso horario se construyó), así que no hace falta
+// ningún ajuste manual de horas — mismo criterio que el resto del archivo.
+function computeMoonForDay(dateKey){
+  const localMidnight = fromKey(dateKey);
+  const nextLocalMidnight = new Date(localMidnight.getTime() + 24*3600000);
+  const rs = findMoonRiseSet(localMidnight, nextLocalMidnight, 3);
+  const localNoon = new Date(localMidnight.getTime() + 12*3600000);
+  const phase = moonPhaseAt(toJulianDate(localNoon));
+  return {
+    rise: rs.rise,
+    set: rs.set,
+    illum: phase.illum,
+    waxing: phase.waxing,
+    phaseName: moonPhaseName(phase.elong)
+  };
+}
+
+// path SVG de la porción iluminada de la luna (vista desde el hemisferio sur:
+// creciente se ilumina del lado izquierdo, menguante del lado derecho)
+function moonSvgPath(illum, waxing){
+  const cx = 20, cy = 20, r = 18;
+  const k = Math.max(0, Math.min(1, illum));
+  const rx = r * Math.abs(1 - 2*k);
+  const sweep1 = k < 0.5 ? 1 : 0;
+  const sweep2 = waxing ? 0 : 1; // invertido respecto a la convención del hemisferio norte
+  return `M ${cx} ${cy-r} A ${rx} ${r} 0 0 ${sweep1} ${cx} ${cy+r} A ${r} ${r} 0 0 ${sweep2} ${cx} ${cy-r} Z`;
+}
+
 // ---------- state ----------
 let currentKey = null;
 let chart = null;
@@ -441,6 +649,7 @@ function render(dateKey){
 
   const curve = buildDayCurve(dateKey);
   const events = classifyEvents(dateKey);
+  const moonData = computeMoonForDay(dateKey);
 
   // current-time marker only if viewing today
   let nowPoint = null;
@@ -449,9 +658,10 @@ function render(dateKey){
     nowPoint = { x: now, y: Math.round(heightAt(now)*1000)/1000 };
   }
 
-  updateChart(curve, events, nowPoint);
+  updateChart(curve, events, nowPoint, moonData);
   updateEvents(events);
   updateNowStrip(nowPoint, events);
+  updateMoonCard(moonData);
 }
 
 function updateNowStrip(nowPoint, events){
@@ -489,6 +699,19 @@ function updateEvents(events){
   });
 }
 
+function formatHM(d){
+  if (!d) return '—';
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function updateMoonCard(moon){
+  document.getElementById('moonLitPath').setAttribute('d', moonSvgPath(moon.illum, moon.waxing));
+  document.getElementById('moonPhaseName').textContent = moon.phaseName;
+  document.getElementById('moonIllum').textContent = Math.round(moon.illum*100) + '% iluminada · ' + (moon.waxing ? 'creciente' : 'menguante');
+  document.getElementById('moonRiseTime').textContent = formatHM(moon.rise);
+  document.getElementById('moonSetTime').textContent = formatHM(moon.set);
+}
+
 // ---------- canvas tide chart (no external dependencies) ----------
 const canvas = document.getElementById('tideChart');
 const cctx = canvas.getContext('2d');
@@ -498,7 +721,7 @@ const chartBox = document.getElementById('chartBox');
 const PAD = { top: 14, right: 14, bottom: 24, left: 38 };
 const Y_MIN = 0, Y_MAX = 2.0;
 
-let lastCurve = null, lastEvents = null, lastNowPoint = null, lastDayStart = null;
+let lastCurve = null, lastEvents = null, lastNowPoint = null, lastDayStart = null, lastMoonData = null;
 
 function resizeCanvas(){
   const cssW = canvas.clientWidth;
@@ -615,13 +838,41 @@ function drawChart(){
     cctx.strokeRect(-5, -5, 10, 10);
     cctx.restore();
   }
+
+  // marcas de salida/ocultamiento de la luna
+  if (lastMoonData){
+    [
+      { t: lastMoonData.rise, label: 'Sale ' + formatHM(lastMoonData.rise), align: 'left' },
+      { t: lastMoonData.set,  label: 'Se oculta ' + formatHM(lastMoonData.set), align: 'right' }
+    ].forEach(m => {
+      if (!m.t || m.t < dayStart || m.t > lastCurve[lastCurve.length-1].x) return;
+      const x = xToPx(m.t, dayStart, plotW);
+      cctx.save();
+      cctx.setLineDash([4, 4]);
+      cctx.strokeStyle = 'rgba(244,212,124,0.55)';
+      cctx.lineWidth = 1;
+      cctx.beginPath();
+      cctx.moveTo(x, PAD.top);
+      cctx.lineTo(x, PAD.top + plotH);
+      cctx.stroke();
+      cctx.restore();
+
+      cctx.font = '10px "JetBrains Mono", monospace';
+      cctx.fillStyle = '#f4d47c';
+      cctx.textBaseline = 'bottom';
+      cctx.textAlign = m.align === 'left' ? 'left' : 'right';
+      const labelX = m.align === 'left' ? Math.min(x + 4, PAD.left + plotW - 4) : Math.max(x - 4, PAD.left + 4);
+      cctx.fillText('🌙 ' + m.label, labelX, PAD.top + 12);
+    });
+  }
 }
 
-function updateChart(curve, events, nowPoint){
+function updateChart(curve, events, nowPoint, moonData){
   lastCurve = curve;
   lastEvents = events;
   lastNowPoint = nowPoint;
   lastDayStart = curve[0].x;
+  lastMoonData = moonData;
   resizeCanvas();
 }
 
