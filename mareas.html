@@ -839,14 +839,11 @@ function drawChart(){
     cctx.restore();
   }
 
-  // marcas de salida/ocultamiento de la luna
+  // marcas de salida/ocultamiento de la luna (solo el ícono, el detalle está en la tarjeta)
   if (lastMoonData){
-    [
-      { t: lastMoonData.rise, label: 'Sale ' + formatHM(lastMoonData.rise), align: 'left' },
-      { t: lastMoonData.set,  label: 'Se oculta ' + formatHM(lastMoonData.set), align: 'right' }
-    ].forEach(m => {
-      if (!m.t || m.t < dayStart || m.t > lastCurve[lastCurve.length-1].x) return;
-      const x = xToPx(m.t, dayStart, plotW);
+    [lastMoonData.rise, lastMoonData.set].forEach(t => {
+      if (!t || t < dayStart || t > lastCurve[lastCurve.length-1].x) return;
+      const x = xToPx(t, dayStart, plotW);
       cctx.save();
       cctx.setLineDash([4, 4]);
       cctx.strokeStyle = 'rgba(244,212,124,0.55)';
@@ -857,12 +854,11 @@ function drawChart(){
       cctx.stroke();
       cctx.restore();
 
-      cctx.font = '10px "JetBrains Mono", monospace';
+      cctx.font = '12px "JetBrains Mono", monospace';
       cctx.fillStyle = '#f4d47c';
-      cctx.textBaseline = 'bottom';
-      cctx.textAlign = m.align === 'left' ? 'left' : 'right';
-      const labelX = m.align === 'left' ? Math.min(x + 4, PAD.left + plotW - 4) : Math.max(x - 4, PAD.left + 4);
-      cctx.fillText('🌙 ' + m.label, labelX, PAD.top + 12);
+      cctx.textBaseline = 'top';
+      cctx.textAlign = 'center';
+      cctx.fillText('🌙', x, PAD.top + 2);
     });
   }
 }
